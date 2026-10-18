@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>JES Life</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Jost:wght@300;400&family=Oranienbaum&family=Unbounded:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/site.css">
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/" } }</script>
+</head>
+<body>
+
+<header class="site-header" id="header">
+  <nav><a href="#about">О&nbsp;нас</a><a href="#business">Бизнес</a><a href="#products">Продукты</a><a href="#contacts">Контакты</a></nav>
+  <a class="logo" href="#hero">JES Life</a>
+  <a class="btn" href="#contacts">Стать партнёром</a>
+</header>
+
+<main>
+  <!-- 01 Бренд: 3D hero, two worlds split by a seam -->
+  <section id="hero" data-theme="dark" aria-label="Традиции, проверенные временем. Технологии, созданные для будущего">
+    <canvas id="gl"></canvas>
+    <svg id="leaders"></svg>
+    <div id="specs">
+      <div class="spec r" data-anchor="cap"><b>Крышка</b><span>металл, ромбовидная накатка</span></div>
+      <div class="spec r minor" data-anchor="shoulder"><b>Плечи</b><span>радиус 9&nbsp;мм</span></div>
+      <div class="spec r" data-anchor="wall"><b>Стенка</b><span>янтарное стекло 3&nbsp;мм</span></div>
+      <div class="spec r minor" data-anchor="base"><b>Дно</b><span>утолщение 5&nbsp;мм</span></div>
+      <div class="spec l" data-anchor="label"><b>Этикетка</b><span>по кругу, тиснение фольгой</span></div>
+      <div class="spec l" data-anchor="volume"><b>Объём</b><span>250&nbsp;мл · 80&nbsp;капсул</span></div>
+    </div>
+    <div class="voice l"><div class="hit" data-mode="-1"><div class="big">Традиции,</div><div class="script">проверенные временем.</div></div></div>
+    <div class="voice r"><div class="hit" data-mode="1"><div class="big">Технологии,</div><div class="script">созданные для&nbsp;будущего</div></div></div>
+    <div id="hint">наведите на&nbsp;слово</div>
+    <div id="fps" hidden></div>
+    <div id="nogl">WebGL недоступен: здесь будет статичная картинка hero.</div>
+    <div class="hero-dim"></div>
+  </section>
+
+  <!-- 02 О нас -->
+  <section class="sec about" id="about" data-theme="light" data-show data-arch>
+    <div class="pillar l" aria-hidden="true"><svg viewBox="0 0 95 340" fill="none"><path d="M0.533 339.241V75.241C0.533 35.241 27.2 8.574 47.2 0.574C67.2 8.574 93.867 35.241 93.867 75.241V339.241" stroke="#C9B49A" stroke-width="1.067"/><path d="M16.533 339.241V83.241C16.533 53.908 32.533 29.908 47.2 19.241C61.867 29.908 77.867 53.908 77.867 83.241V339.241" stroke="#C9B49A" stroke-width="1.067"/><path d="M32.533 339.241V91.241C32.533 69.908 40.533 51.241 47.2 40.574C53.867 51.241 61.867 69.908 61.867 91.241V339.241" stroke="#C9B49A" stroke-width="1.067"/><circle cx="47.2" cy="128.575" r="6.667" stroke="#C9B49A" stroke-width="1.067"/><circle cx="47.2" cy="155.241" r="4" stroke="#C9B49A" stroke-width="1.067"/><circle cx="47.2" cy="176.575" r="2.667" stroke="#C9B49A" stroke-width="1.067"/></svg></div>
+    <div class="pillar r" aria-hidden="true"><svg viewBox="0 0 95 340" fill="none"><path d="M0.533 339.241V75.241C0.533 35.241 27.2 8.574 47.2 0.574C67.2 8.574 93.867 35.241 93.867 75.241V339.241" stroke="#C9B49A" stroke-width="1.067"/><path d="M16.533 339.241V83.241C16.533 53.908 32.533 29.908 47.2 19.241C61.867 29.908 77.867 53.908 77.867 83.241V339.241" stroke="#C9B49A" stroke-width="1.067"/><path d="M32.533 339.241V91.241C32.533 69.908 40.533 51.241 47.2 40.574C53.867 51.241 61.867 69.908 61.867 91.241V339.241" stroke="#C9B49A" stroke-width="1.067"/><circle cx="47.2" cy="128.575" r="6.667" stroke="#C9B49A" stroke-width="1.067"/><circle cx="47.2" cy="155.241" r="4" stroke="#C9B49A" stroke-width="1.067"/><circle cx="47.2" cy="176.575" r="2.667" stroke="#C9B49A" stroke-width="1.067"/></svg></div>
+    <div class="about__center">
+      <p class="label reveal-up">О&nbsp;нас</p>
+      <span class="rule"></span>
+      <h2 class="giant about__title title-anim" data-show>
+        <span class="tl" style="--line:0"><span class="tc grad-dark">Опираясь на&nbsp;опыт индустрии,</span></span>
+        <span class="tl" style="--line:1"><span class="tc grad-dark"><img class="pill" src="assets/img/pill-heritage.webp" data-zoom="assets/img/pill-heritage-lg.webp" alt="Тиснение фольгой латунным штампом" style="--line:1">мы&nbsp;выбираем лучшие<img class="pill" src="assets/img/pill-technology.webp" data-zoom="assets/img/pill-technology-lg.webp" alt="Развёртка коробки и&nbsp;макет банки" style="--line:1"></span></span>
+        <span class="tl" style="--line:2"><span class="tc grad-dark">современные технологии</span></span>
+        <span class="tl" style="--line:3"><span class="tc grad-dark">и&nbsp;создаём продукты</span></span>
+        <span class="tl" style="--line:4"><span class="tc grad-dark">для&nbsp;жизни<img class="pill" src="assets/img/pill-product.webp" data-zoom="assets/img/pill-product-lg.webp" alt="Банка крема с&nbsp;золотой крышкой" style="--line:4"></span></span>
+      </h2>
+      <div class="about__text">
+        <p class="reveal-up" style="--d:.7s">Мы&nbsp;строим современную сетевую компанию на&nbsp;фундаменте опыта, который индустрия накапливала десятилетиями.</p>
+        <p class="reveal-up" style="--d:.85s">Берём проверенные бизнес-подходы и&nbsp;работающие модели, усиливаем их&nbsp;инновационными технологиями и&nbsp;креативными разработками, добавляем вдохновение наших единомышленников и&nbsp;получаем компанию, в&nbsp;которой традиции становятся основами для&nbsp;движения вперёд</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 Бизнес с нами -->
+  <div class="arch-wrap" data-theme="light">
+  <section class="sec business" id="business" data-theme="dark" data-show data-arch>
+    <p class="label reveal-up">Бизнес</p>
+    <div class="business__head">
+      <h2 class="giant business__title title-anim" data-show><span class="tl"><span class="tc grad-light">Бизнес с&nbsp;нами</span></span></h2>
+      <img class="business__chess" src="assets/img/business-chess.webp" alt="Золотой король и&nbsp;чёрная пешка на&nbsp;коробке">
+    </div>
+    <p class="business__intro reveal-up" style="--d:.2s">Маркетинг-план&nbsp;— один из&nbsp;ключевых элементов любой сетевой компании, поэтому к&nbsp;его&nbsp;разработке мы&nbsp;подошли особенно внимательно.</p>
+    <div class="steps">
+      <article class="frame-card reveal-up" style="--d:.1s"><i class="corner"></i><i class="corner"></i><i class="corner"></i><i class="corner"></i>
+        <div class="step__num grad-light">01</div><h3 class="step__title">Глубокий анализ индустрии</h3>
+        <p class="step__text">Мы&nbsp;изучили модели, которые уже&nbsp;доказали свою устойчивость, эффективность и&nbsp;привлекательность для&nbsp;партнёров.</p></article>
+      <article class="frame-card reveal-up" style="--d:.2s"><i class="corner"></i><i class="corner"></i><i class="corner"></i><i class="corner"></i>
+        <div class="step__num grad-light">02</div><h3 class="step__title">Исследование рынков и&nbsp;компаний</h3>
+        <p class="step__text">Мы&nbsp;проанализировали подходы, работающие в&nbsp;разных странах, бизнес-средах и&nbsp;организационных структурах сетевого бизнеса.</p></article>
+      <article class="frame-card reveal-up" style="--d:.3s"><i class="corner"></i><i class="corner"></i><i class="corner"></i><i class="corner"></i>
+        <div class="step__num grad-light">03</div><h3 class="step__title">Что&nbsp;действительно работает</h3>
+        <p class="step__text">Мы&nbsp;оценили, какие системы лучше воспринимаются людьми, что&nbsp;мотивирует партнёров и&nbsp;что&nbsp;помогает строить перспективный бизнес.</p></article>
+      <article class="frame-card reveal-up" style="--d:.4s"><i class="corner"></i><i class="corner"></i><i class="corner"></i><i class="corner"></i>
+        <div class="step__num grad-light">04</div><h3 class="step__title">Лучшее в&nbsp;одной системе</h3>
+        <p class="step__text">На&nbsp;основе анализа рынка и&nbsp;исследований индустрии мы&nbsp;объединили наиболее интересные и&nbsp;проверенные решения в&nbsp;собственном маркетинг-плане.</p></article>
+    </div>
+    <a class="btn-gold reveal-up" style="--d:.5s" href="#">Подробнее</a>
+  </section>
+  </div>
+
+  <!-- 04 О наших продуктах -->
+  <div class="arch-wrap" data-theme="dark" style="--wrap: var(--plum)">
+  <section class="sec products" id="products" data-theme="light" data-show data-arch>
+    <div class="products__head">
+      <h2 class="giant products__title title-anim" data-show>
+        <span class="tl" style="--line:0"><span class="tc grad-dark">О&nbsp;наших</span></span>
+        <span class="tl" style="--line:1"><span class="tc grad-dark">продуктах</span></span>
+      </h2>
+      <img class="products__jar" src="assets/img/products-jar.webp" alt="Открытая банка крема, крышка парит над&nbsp;ней">
+    </div>
+    <div class="products__cols">
+      <p class="reveal-up" style="--d:.2s">Когда мы&nbsp;начали формировать продуктовую концепцию, стало очевидно, что&nbsp;невозможно выбрать одну страну или&nbsp;одну производственную школу, которая была&nbsp;бы одинаково сильна во&nbsp;всех категориях.</p>
+      <p class="reveal-up" style="--d:.3s">Мы&nbsp;все&nbsp;знаем, что&nbsp;лучшие круассаны выпекают во&nbsp;Франции, а&nbsp;лучшую пасту готовят в&nbsp;Италии, а&nbsp;Япония&nbsp;— родина суши. Мы&nbsp;поняли, что&nbsp;к&nbsp;разработке продукции стоит подходить так&nbsp;же.</p>
+      <p class="reveal-up" style="--d:.4s">Мы&nbsp;приняли решение, что&nbsp;для&nbsp;каждого направления мы&nbsp;будем выбирать ту&nbsp;экспертизу, технологии и&nbsp;разработки, которые считаются наиболее сильными именно в&nbsp;своей области, независимо от&nbsp;того, в&nbsp;какой точке мира они появились.</p>
+    </div>
+    <div class="carousel" data-carousel>
+      <div class="carousel__track">
+        <article class="frame-card reveal-up" style="--d:.1s"><i class="corner"></i><i class="corner"></i><i class="corner"></i><i class="corner"></i>
+          <div class="medal"><img src="assets/img/medallion-1.webp" alt=""></div><h3 class="card__title">Не&nbsp;ограничиваемся одной страной</h3></article>
+        <article class="frame-card reveal-up" style="--d:.2s"><i class="corner"></i><i class="corner"></i><i class="corner"></i><i class="corner"></i>
+          <div class="medal"><img src="assets/img/medallion-2.webp" alt=""></div><h3 class="card__title">Ищем экспертизу там, где&nbsp;она сильна</h3>
+          <p class="card__text">Косметические технологии, нутрицевтика, функциональное питание, растительные формулы&nbsp;— у&nbsp;каждой категории может быть свой центр экспертизы.</p></article>
+        <article class="frame-card reveal-up" style="--d:.3s"><i class="corner"></i><i class="corner"></i><i class="corner"></i><i class="corner"></i>
+          <div class="medal"><img src="assets/img/medallion-3.webp" alt=""></div><h3 class="card__title">Соединяем разные школы и&nbsp;традиции</h3></article>
+        <article class="frame-card reveal-up" style="--d:.4s"><i class="corner"></i><i class="corner"></i><i class="corner"></i><i class="corner"></i>
+          <div class="medal"><img src="assets/img/medallion-4.webp" alt=""></div><h3 class="card__title">Смотрим на&nbsp;продукт глобально</h3></article>
+      </div>
+      <div class="slider-nav" data-nav>
+        <button class="prev" aria-label="Назад"><svg class="arrow" viewBox="0 0 18 18" fill="none"><path d="M11 3L5 9l6 6" stroke="currentColor" stroke-width="1.2"/></svg></button>
+        <span class="count"><span data-cur>1</span> / <span data-total>2</span></span>
+        <button class="next" aria-label="Вперёд"><svg class="ring" viewBox="0 0 48 48"><circle cx="24" cy="24" r="23"/></svg><svg class="arrow" viewBox="0 0 18 18" fill="none"><path d="M7 3l6 6-6 6" stroke="currentColor" stroke-width="1.2"/></svg></button>
+      </div>
+    </div>
+  </section>
+
+  </div>
+
+  <!-- 05 Пауза: product on the footer ink, no text; one dark field runs on into the footer -->
+  <div class="arch-wrap" data-theme="light" style="--wrap: var(--sand)">
+  <section class="sec pause" id="pause" data-theme="dark" data-show data-arch>
+    <div class="pause__stage" data-stage>
+      <div class="pause__zoom"><div class="pause__turn">
+        <div class="pause__slide on"><img src="assets/img/pause-lineup.webp" alt="Линейка продуктов JES Life на&nbsp;тёмном фоне"></div>
+        <div class="pause__slide"><img src="assets/img/pause-brand-birth.webp" alt="От&nbsp;синих макетов без&nbsp;бренда к&nbsp;готовым продуктам"></div>
+      </div></div>
+    </div>
+    <div class="slider-nav" data-pause-nav>
+      <button class="prev" aria-label="Назад"><svg class="arrow" viewBox="0 0 18 18" fill="none"><path d="M11 3L5 9l6 6" stroke="currentColor" stroke-width="1.2"/></svg></button>
+      <span class="count"><span data-cur>1</span> / <span data-total>2</span></span>
+      <button class="next" aria-label="Вперёд"><svg class="ring" viewBox="0 0 48 48"><circle cx="24" cy="24" r="23"/></svg><svg class="arrow" viewBox="0 0 18 18" fill="none"><path d="M7 3l6 6-6 6" stroke="currentColor" stroke-width="1.2"/></svg></button>
+    </div>
+    <div class="pause__cursor" aria-hidden="true"><span>вращать</span></div>
+  </section>
+  </div>
+</main>
+
+<footer class="site-footer" id="contacts" data-theme="dark" data-show>
+  <!-- footer after MDE: a double frame with the menu and the partner form, the full-width mark, the legal row.
+       It follows «Пауза» directly, without the arch -->
+  <div class="footer__frame">
+    <div class="footer__cols">
+      <nav class="footer__col" aria-label="О&nbsp;нас и&nbsp;бизнес">
+        <a class="footer__title" href="#about"><span class="reveal-up">О&nbsp;нас</span></a>
+        <a class="footer__title" href="#business"><span class="reveal-up" style="--d:.15s">Бизнес</span></a>
+      </nav>
+      <div class="footer__col footer__col--mid">
+        <h3 class="footer__title reveal-up">Стать партнёром</h3>
+        <form class="footer__form reveal-up" data-demo-form novalidate>
+          <input type="text" name="contact" placeholder="Телефон или e-mail" autocomplete="off" aria-label="Телефон или e-mail">
+          <button type="submit">Отправить <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9l6-6M4.5 3H9v4.5" stroke="currentColor" stroke-width="1"/></svg></button>
+        </form>
+        <p class="footer__note" data-demo-note hidden>Спасибо! Это демо-форма, данные никуда не&nbsp;отправляются.</p>
+      </div>
+      <nav class="footer__col" aria-label="Продукты и&nbsp;контакты">
+        <a class="footer__title" href="#products"><span class="reveal-up">Продукты</span></a>
+        <a class="footer__title" href="#contacts"><span class="reveal-up" style="--d:.15s">Контакты</span></a>
+      </nav>
+    </div>
+  </div>
+  <div class="footer__mark title-anim" data-show><span class="tl"><span class="tc giant grad-light" data-fit>JES Life</span></span></div>
+  <div class="footer__bottom">
+    <p class="footer__copy">© 2026 JES Life.<br>Все права защищены.</p>
+    <nav class="footer__legal">
+      <a href="#">Политика конфиденциальности</a>
+      <a href="#">Политика cookie</a>
+      <a href="#">Пользовательское соглашение</a>
+      <a href="#">Партнёрское соглашение</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="js/site.js"></script>
+<script type="module" src="js/hero.js"></script>
+</body>
+</html>

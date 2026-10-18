@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>JES Life Hero 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Jost:wght@300;400&family=Oranienbaum&family=Unbounded:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #F0E8DF;
+    --gold-a: #DCB994;
+    --gold-b: #FFEBD6;
+    --ice: #C9D5EE;
+    --spec: #A9BDE6;
+    --night: #0C0804;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: var(--night); color: var(--cream); overflow: hidden; }
+  body { font-family: Jost, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+
+  #hero { position: relative; width: 100%; height: 100svh; min-height: 560px; overflow: hidden; user-select: none; touch-action: manipulation; }
+  #gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  header { position: absolute; top: 0; left: 0; right: 0; height: 76px; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; z-index: 6; }
+  nav { display: flex; gap: 32px; }
+  nav a { color: var(--cream); text-decoration: none; font-size: 15px; }
+  .logo { position: absolute; left: 50%; transform: translateX(-50%); font-family: Oranienbaum, serif; font-size: 30px; letter-spacing: .01em; white-space: nowrap; }
+  .logo .j, .logo .l { color: #E7CFAF; }
+  .btn { border: .8px solid var(--gold-a); border-radius: 100px; padding: 14px 28px; font-family: Unbounded, sans-serif; font-weight: 300; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--cream); text-decoration: none; white-space: nowrap; }
+
+  /* giant words: hovering a word opens its world */
+  .voice { position: absolute; bottom: 5.5vh; width: 50%; text-align: center; z-index: 4; pointer-events: none; will-change: transform, opacity; }
+  .voice.l { left: 0; }
+  .voice.r { right: 0; }
+  /* hovered word grows to 108%, the other shrinks to 90% and fades to 70%; scaling from the outer bottom corner,
+     so the growing word extends toward the centre and never leaves the screen */
+  .voice .hit { display: inline-block; pointer-events: auto; cursor: pointer; padding: 0 12px; transition: transform .6s cubic-bezier(.2, .7, .2, 1), opacity .6s; }
+  .voice.l .hit { transform-origin: 0% 100%; }
+  .voice.r .hit { transform-origin: 100% 100%; }
+  .voice.hot .hit { transform: scale(1.08); }
+  .voice.cold .hit { transform: scale(0.9); opacity: .5; }
+  .big { font-family: Oranienbaum, serif; text-transform: uppercase; font-size: clamp(40px, 7.8vw, 112px); line-height: .95; letter-spacing: -.02em; background: linear-gradient(90deg, var(--gold-a), var(--gold-b) 50%, var(--gold-a)); -webkit-background-clip: text; background-clip: text; color: transparent; white-space: nowrap; }
+  .script { font-family: 'Great Vibes', cursive; font-size: clamp(22px, 3vw, 44px); line-height: 1.1; margin-top: -.1em; }
+  .voice.l .script { color: var(--cream); }
+  .voice.r .script { color: #E6ECF8; }
+
+  #specs { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+  #leaders { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; overflow: visible; }
+  #leaders polyline { stroke: #8FB0FF; stroke-width: 1; fill: none; }
+  #leaders circle { fill: #DCE7FF; }
+  .spec { position: absolute; left: 0; top: 0; opacity: 0; white-space: nowrap; will-change: transform, opacity; }
+  .spec b { display: block; font-family: Unbounded, sans-serif; font-weight: 400; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #FFFFFF; margin-bottom: 4px; }
+  .spec span { font-size: 15px; color: var(--spec); font-weight: 300; }
+  .spec.l { text-align: right; }
+
+  #hint { position: absolute; left: 50%; bottom: 1.6vh; transform: translateX(-50%); z-index: 5; font-family: Unbounded, sans-serif; font-weight: 300; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: rgba(240, 232, 223, .55); white-space: nowrap; transition: opacity .8s; pointer-events: none; }
+  #fps { position: absolute; right: 12px; bottom: 12px; z-index: 9; font: 12px/1 ui-monospace, monospace; color: #9f9; background: rgba(0, 0, 0, .5); padding: 6px 8px; border-radius: 4px; }
+  #nogl { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; text-align: center; padding: 24px; color: var(--cream); }
+
+  @media (max-width: 760px) {
+    header { padding: 0 16px; height: 64px; }
+    nav { display: none; }
+    .logo { position: static; transform: none; font-size: 24px; }
+    .btn { padding: 10px 16px; font-size: 9px; }
+    .voice { bottom: 9vh; }
+    .big { font-size: 7.4vw; }
+    .script { font-size: 4.6vw; }
+    .spec span { font-size: 12px; }
+    .spec b { font-size: 9px; }
+    .spec.minor { display: none; }
+  }
+</style>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/" } }</script>
+</head>
+<body>
+<section id="hero" aria-label="Традиции, проверенные временем. Технологии, созданные для будущего">
+  <canvas id="gl"></canvas>
+  <svg id="leaders"></svg>
+  <div id="specs">
+    <div class="spec r" data-anchor="cap"><b>Крышка</b><span>металл, ромбовидная накатка</span></div>
+    <div class="spec r minor" data-anchor="shoulder"><b>Плечи</b><span>радиус 9&nbsp;мм</span></div>
+    <div class="spec r" data-anchor="wall"><b>Стенка</b><span>янтарное стекло 3&nbsp;мм</span></div>
+    <div class="spec r minor" data-anchor="base"><b>Дно</b><span>утолщение 5&nbsp;мм</span></div>
+    <div class="spec l" data-anchor="label"><b>Этикетка</b><span>по кругу, тиснение фольгой</span></div>
+    <div class="spec l" data-anchor="volume"><b>Объём</b><span>250&nbsp;мл · 80&nbsp;капсул</span></div>
+  </div>
+  <header>
+    <nav><a href="#">О&nbsp;нас</a><a href="#">Бизнес</a><a href="#">Продукты</a><a href="#">Контакты</a></nav>
+    <div class="logo"><span class="j">JES</span><span class="l"> Life</span></div>
+    <a class="btn" href="#">Стать партнёром</a>
+  </header>
+  <div class="voice l"><div class="hit" data-mode="-1"><div class="big">Традиции,</div><div class="script">проверенные временем.</div></div></div>
+  <div class="voice r"><div class="hit" data-mode="1"><div class="big">Технологии,</div><div class="script">созданные для&nbsp;будущего</div></div></div>
+  <div id="hint">наведите на&nbsp;слово</div>
+  <div id="fps" hidden></div>
+  <div id="nogl">WebGL недоступен: здесь будет статичная картинка hero.</div>
+</section>
+
+<script type="module">
+import * as THREE from 'three';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+
+const hero = document.getElementById('hero');
+const canvas = document.getElementById('gl');
+const isTouch = matchMedia('(hover: none)').matches;
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const debug = new URLSearchParams(location.search).has('debug');
+const upright = new URLSearchParams(location.search).has('upright'); // compare with the reference: no tilt, no sway
+const close = new URLSearchParams(location.search).has('close');     // debug: camera close to inspect the jar
+const noHdri = new URLSearchParams(location.search).has('nohdri');   // debug: compare with the light-panel studio only
+const C = (hex) => new THREE.Color(hex);
+const clamp01 = (v) => Math.min(1, Math.max(0, v));
+const smooth = (e0, e1, v) => { const t = clamp01((v - e0) / (e1 - e0)); return t * t * (3 - 2 * t); };
+
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+} catch (e) {
+  document.getElementById('nogl').style.display = 'flex';
+  throw e;
+}
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, isTouch ? 1.5 : 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+// the glass refraction pass is the expensive part on phones
+if ('transmissionResolutionScale' in renderer) renderer.transmissionResolutionScale = isTouch ? 0.5 : 1;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(28, 1, 0.1, 100);
+
+/* ---------- one screen seam drives everything ---------- */
+// 0.5 = balance; 1 = traditions fill the screen; 0 = technologies fill the screen
+const seamU = { value: 0.5 };
+// a material drawn only on one side of the seam: -1 = left (traditions), 1 = right (technologies)
+function split(mat, side) {
+  mat.onBeforeCompile = (sh) => {
+    sh.uniforms.uSeam = seamU;
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec4 vSplitClip;')
+      .replace('#include <project_vertex>', '#include <project_vertex>\nvSplitClip = gl_Position;');
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform float uSeam;\nvarying vec4 vSplitClip;')
+      .replace('void main() {', `void main() {\n  if ((vSplitClip.x / vSplitClip.w * 0.5 + 0.5 - uSeam) * ${side.toFixed(1)} < 0.0) discard;`);
+  };
+  mat.customProgramCacheKey = () => 'split' + side;
+  return mat;
+}
+
+/* ---------- background: both halves live in WebGL so the glass refracts them ---------- */
+const bgU = {
+  uMode: { value: 0 }, uAspect: { value: 1 }, uJarY: { value: 0.58 }, uSeam: seamU, uPx: { value: 1 },
+  uHalo: { value: new THREE.Vector2(0.5, 0.58) }, uHaloR: { value: 0.42 },
+  cHaloW: { value: C('#B07A3E') }, cHaloC: { value: C('#6F8FC4') },
+  cWarm0: { value: C('#0C0804') }, cWarm1: { value: C('#3B2414') },
+  cNavy0: { value: C('#050A18') }, cNavy1: { value: C('#22335F') },
+  cGold: { value: C('#D9A865') }, cGrid: { value: C('#8FB0FF') },
+};
+const bg = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({
+  uniforms: bgU, depthTest: false, depthWrite: false, toneMapped: false,
+  vertexShader: /* glsl */`
+    varying vec2 vUv;
+    void main() { vUv = uv; gl_Position = vec4(position.xy, 0.9999, 1.0); }`,
+  fragmentShader: /* glsl */`
+    uniform float uMode, uAspect, uJarY, uSeam, uPx, uHaloR;
+    uniform vec2 uHalo;
+    uniform vec3 cHaloW, cHaloC;
+    uniform vec3 cWarm0, cWarm1, cNavy0, cNavy1, cGold, cGrid;
+    varying vec2 vUv;
+    void main() {
+      vec2 p = vec2((vUv.x - uHalo.x) * uAspect, vUv.y - uHalo.y);
+      float r = length(p);
+      float trad = clamp(-uMode, 0.0, 1.0);
+      float tech = clamp(uMode, 0.0, 1.0);
+      vec3 warm = mix(cWarm1, cWarm0, smoothstep(0.0, 0.95, r));
+      vec3 navy = mix(cNavy1, cNavy0, smoothstep(0.0, 0.95, r));
+      // seam measured in device pixels: a hard colour switch and a 1 px line, no soft widening
+      float xpx = vUv.x * uPx, seampx = uSeam * uPx;
+      float side = step(seampx, xpx);
+      vec3 col = mix(warm, navy, side);
+      vec2 g = vec2(vUv.x * uAspect, vUv.y) * 22.0;
+      vec2 gf = abs(fract(g) - 0.5);
+      float grid = 1.0 - smoothstep(0.0, 0.035, min(gf.x, gf.y));
+      col += cGrid * grid * 0.05 * side * (0.3 + 0.7 * tech) * smoothstep(1.2, 0.15, r);
+      // halo behind the jar (MDE-style backlight disc): a radial glow plus a soft-edged disc,
+      // warm gold on the traditions side, cool steel blue on the technologies side; the seam splits it
+      float rr = r / uHaloR;
+      // soft and diffused: a wide falloff with only a hint of the disc edge
+      float halo = pow(1.0 - smoothstep(0.0, 1.4, rr), 1.6) * 0.7 + (1.0 - smoothstep(0.5, 1.4, rr)) * 0.3;
+      col += mix(cHaloW, cHaloC, side) * halo * 0.5;
+      float seamLine = 1.0 - step(0.5, abs(xpx - seampx - 0.5));
+      col += cGold * seamLine * 0.55 * (1.0 - abs(uMode));
+      col *= mix(1.0, 0.5, smoothstep(uHaloR * 1.3, uHaloR * 3.2, r));
+      gl_FragColor = vec4(col, 1.0);
+      #include <colorspace_fragment>
+    }`,
+}));
+bg.frustumCulled = false;
+bg.renderOrder = -10;
+scene.add(bg);
+
+/* ---------- fallback studio from light panels (used until the HDRIs arrive, and with ?nohdri) ---------- */
+{
+  const env = new THREE.Scene();
+  env.background = C('#161616');
+  const panel = (w, h, k, pos) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 1, 1).multiplyScalar(k), side: THREE.DoubleSide }));
+    m.position.set(...pos); m.lookAt(0, 0, 0); env.add(m);
+  };
+  panel(1.2, 9, 4.5, [-5, 1, 2.5]);
+  panel(1.2, 9, 4.5, [5, 1, 2.5]);
+  panel(7, 7, 2, [0, 8, 0]);
+  panel(12, 2.5, 0.8, [0, -1, -7]);
+  panel(3, 5, 1.2, [0, 2, 7]);
+  panel(0.5, 0.5, 14, [-3, 4, 4]);
+  panel(0.5, 0.5, 10, [3.5, 3, 4]);
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(env, 0.03).texture;
+  pmrem.dispose();
+}
+
+/* ---------- lights ---------- */
+scene.add(new THREE.AmbientLight(0xffffff, 0.12));
+const warmKey = new THREE.DirectionalLight(C('#FFBF7A'), 0); warmKey.position.set(-4, 5, 3);
+const warmRim = new THREE.DirectionalLight(C('#FF9D4D'), 0); warmRim.position.set(3, 3, -4);
+const coolKey = new THREE.DirectionalLight(C('#B4CCFF'), 0); coolKey.position.set(4, 5, 3);
+const coolRim = new THREE.DirectionalLight(C('#6F97FF'), 0); coolRim.position.set(-3, 3, -4);
+scene.add(warmKey, warmRim, coolKey, coolRim);
+
+/* ---------- jar: shape, cap and label taken from reference/jar-reference-3d.webp, floating at an angle ---------- */
+const SEG = 96;
+const JAR_LEN = 2.681;         // base to cap top
+const TILT = upright ? 0 : THREE.MathUtils.degToRad(30); // cap to the upper left, base to the lower right
+
+// float (position, tilt) > base (centres the pivot) > spin (turns around its own axis)
+const floatG = new THREE.Group();
+const base = new THREE.Group();
+const spin = new THREE.Group();
+base.position.y = -JAR_LEN / 2;
+floatG.add(base); base.add(spin); scene.add(floatG);
+
+// silhouette measured row by row on the reference (body radius 321.5 px = 0.75):
+// outside up (rounded base, straight body, soft shoulder, neck with a bead), over the rim, inside down
+const OUTER = [
+  [0.001, 0], [0.50, 0], [0.561, 0.016], [0.607, 0.040], [0.661, 0.063], [0.692, 0.086], [0.710, 0.110], [0.730, 0.180],
+  [0.738, 0.273], [0.747, 0.366], [0.752, 0.46], [0.752, 1.70], [0.743, 1.813], [0.731, 1.906], [0.715, 1.953],
+  [0.699, 1.976], [0.677, 1.999], [0.649, 2.023], [0.603, 2.046], [0.551, 2.069], [0.533, 2.093], [0.523, 2.14],
+  [0.523, 2.18], [0.556, 2.198], [0.566, 2.23], [0.566, 2.27], [0.52, 2.29], [0.52, 2.45],
+];
+const INNER = [
+  [0.49, 2.46],
+  [0.46, 2.45], [0.46, 2.10], [0.50, 2.05], [0.62, 1.99], [0.67, 1.94], [0.69, 1.85], [0.70, 1.70], [0.70, 0.30],
+  [0.68, 0.16], [0.60, 0.10], [0.001, 0.10],
+];
+const profile = [...OUTER, ...INNER].map(([x, y]) => new THREE.Vector2(x, y));
+const shellGeo = new THREE.LatheGeometry(profile, SEG);
+
+// every jar part exists twice: the traditions version left of the seam, the technologies version right of it.
+// Glass is two layers so the softgels inside can be truly transparent (three.js does not draw a transmissive
+// object behind another transmissive one): a colour filter multiplied over whatever is behind it,
+// plus a reflection-only layer on top that carries the studio HDRI.
+function glassTint(tint, edge, side) {
+  return new THREE.ShaderMaterial({
+    uniforms: { uTint: { value: tint }, uEdge: { value: edge }, uSeam: seamU },
+    transparent: true, depthWrite: false, premultipliedAlpha: true, blending: THREE.MultiplyBlending,
+    vertexShader: /* glsl */`
+      varying vec3 vN; varying vec3 vV; varying vec4 vClip;
+      void main() {
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        vN = normalize(normalMatrix * normal); vV = -mv.xyz;
+        gl_Position = projectionMatrix * mv; vClip = gl_Position;
+      }`,
+    fragmentShader: /* glsl */`
+      uniform vec3 uTint; uniform float uEdge, uSeam;
+      varying vec3 vN; varying vec3 vV; varying vec4 vClip;
+      void main() {
+        if ((vClip.x / vClip.w * 0.5 + 0.5 - uSeam) * ${side.toFixed(1)} < 0.0) discard;
+        // walls seen edge-on are thicker: deeper colour toward the silhouette
+        float f = 1.0 - abs(dot(normalize(vN), normalize(vV)));
+        gl_FragColor = vec4(mix(uTint, uTint * uTint * uTint, pow(f, 2.5) * uEdge), 1.0);
+      }`,
+  });
+}
+const glassRefl = (side, spec, env) => split(new THREE.MeshPhysicalMaterial({ color: 0x000000, metalness: 0, roughness: 0.04, clearcoat: 1, clearcoatRoughness: 0.03, specularIntensity: 1, specularColor: spec, ior: 1.5, envMapIntensity: env, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }), side);
+const tintT = glassTint(new THREE.Vector3(0.70, 0.52, 0.22), 1.0, -1); // amber; four wall surfaces stack into a warm brown
+const tintH = glassTint(new THREE.Vector3(0.975, 0.985, 1.0), 0.6, 1);  // clear with a cool edge
+const reflT = glassRefl(-1, C('#FFC070'), 0.35), reflH = glassRefl(1, C('#FFFFFF'), 0.7); // warm, softer reflections keep the amber from going milky pink
+for (const [mat, order] of [[tintT, 1], [tintH, 1], [reflT, 2], [reflH, 2]]) {
+  const m = new THREE.Mesh(shellGeo, mat); m.renderOrder = order; spin.add(m);
+}
+
+// cap: real diamond pyramids (harlequin knurl) so every facet catches its own highlight, plus a hammered bump
+const CAP_R = 0.601, CAP_Y0 = 2.289, CAP_Y1 = 2.645, CAP_TOP = 2.681;
+function knurledCap(R, y0, y1, N, depth) {
+  const dy = (y1 - y0) / 1.5, dth = Math.PI * 2 / N;
+  const pos = [];
+  const P = (th, y, r) => [Math.sin(th) * r, y, Math.cos(th) * r];
+  for (let j = 0; j <= 3; j++) {             // rows: top edge (halves), full, full, bottom edge (halves)
+    const yc = y1 - j * dy / 2, off = (j % 2) * dth / 2;
+    for (let i = 0; i < N; i++) {
+      const th = i * dth + off;
+      const L = P(th - dth / 2, yc, R), Rt = P(th + dth / 2, yc, R);
+      const T = P(th, yc + dy / 2, R), B = P(th, yc - dy / 2, R), A = P(th, yc, R + depth);
+      if (j > 0) pos.push(...A, ...T, ...L, ...A, ...Rt, ...T);
+      if (j < 3) pos.push(...A, ...B, ...Rt, ...A, ...L, ...B);
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  const uv = [];
+  for (let k = 0; k < pos.length; k += 3) uv.push(Math.atan2(pos[k], pos[k + 2]) / (Math.PI * 2) + 0.5, (pos[k + 1] - y0) / (y1 - y0));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  geo.computeVertexNormals(); // non-indexed: flat facets
+  return geo;
+}
+const hammered = noiseTexture(256, 2);
+hammered.wrapS = hammered.wrapT = THREE.RepeatWrapping; hammered.repeat.set(6, 2);
+const capT = split(new THREE.MeshPhysicalMaterial({ color: C('#D9A85A'), metalness: 1, roughness: 0.3, clearcoat: 0.4, clearcoatRoughness: 0.25, envMapIntensity: 1.7, bumpMap: hammered, bumpScale: 0.8 }), -1);
+const capH = split(new THREE.MeshPhysicalMaterial({ color: C('#C3CEE2'), metalness: 0.8, roughness: 0.3, clearcoat: 0.4, clearcoatRoughness: 0.25, envMapIntensity: 1.6, bumpMap: hammered, bumpScale: 0.5 }), 1);
+const capParts = [
+  [knurledCap(CAP_R, CAP_Y0, CAP_Y1, 14, 0.05), 0],
+  [new THREE.CylinderGeometry(0.50, CAP_R, CAP_TOP - CAP_Y1, SEG), (CAP_Y1 + CAP_TOP) / 2], // rounded top edge and lid
+  [new THREE.CircleGeometry(CAP_R, SEG).rotateX(Math.PI / 2), CAP_Y0],                       // underside
+];
+for (const [geo, y] of capParts) {
+  for (const mat of [capT, capH]) { const m = new THREE.Mesh(geo, mat); m.position.y = y; spin.add(m); }
+}
+
+// softgels: clear golden gel, truly transparent and refracting what is behind them. On a dark scene
+// transparent alone reads black, so light "passing through" is added: a honey glow in the core, clear edges
+function gelGlow(mat) {
+  const prev = mat.onBeforeCompile;
+  mat.onBeforeCompile = (sh, r) => {
+    prev(sh, r);
+    sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+      float facing = abs(dot(normalize(normal), normalize(vViewPosition)));
+      totalEmissiveRadiance *= pow(facing, 3.0);`);
+  };
+  const key = mat.customProgramCacheKey();
+  mat.customProgramCacheKey = () => key + 'glow';
+  return mat;
+}
+const gelMat = (side) => gelGlow(split(new THREE.MeshPhysicalMaterial({ transmission: 1, thickness: 0.16, ior: 1.45, roughness: 0.04, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.02, specularIntensity: 1, envMapIntensity: 1.2, color: C('#FFF6D8'), attenuationColor: C('#FFD15C'), attenuationDistance: 0.6, emissive: C('#FFB21E'), emissiveIntensity: 0.85 }), side));
+const gelT = gelMat(-1), gelH = gelMat(1);
+{
+  const geo = new THREE.CapsuleGeometry(0.095, 0.28, 8, 20); // classic elongated capsule, 0.47 long
+  const pts = [];
+  let seed = 11;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 12000 && pts.length < 95; i++) {
+    const r = Math.sqrt(rnd()) * 0.46, a = rnd() * Math.PI * 2;
+    const p = new THREE.Vector3(Math.cos(a) * r, 0.26 + rnd() * 1.52, Math.sin(a) * r);
+    if (pts.every((q) => q.distanceTo(p) > 0.23)) pts.push(p);
+  }
+  const meshT = new THREE.InstancedMesh(geo, gelT, pts.length), meshH = new THREE.InstancedMesh(geo, gelH, pts.length);
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), s = new THREE.Vector3(1, 1, 1);
+  pts.forEach((p, i) => {
+    const axis = new THREE.Vector3(rnd() - 0.5, (rnd() - 0.5) * 0.6, rnd() - 0.5).normalize(); // mostly lying down
+    q.setFromUnitVectors(up, axis);
+    m4.compose(p, q, s); meshT.setMatrixAt(i, m4); meshH.setMatrixAt(i, m4);
+  });
+  spin.add(meshT, meshH);
+}
+
+// label: full wrap, unwrapped from the reference photo (dark paper, gold stripes, gold cartouche in front)
+const LBL_Y = 1.0525, LBL_H = 1.381, LBL_R = 0.758;
+const texLoader = new THREE.TextureLoader();
+const labelMap = texLoader.load('assets/label.png');
+labelMap.colorSpace = THREE.SRGBColorSpace; labelMap.anisotropy = 8;
+const labelOrm = texLoader.load('assets/label-orm.png');
+const labelMat = split(new THREE.MeshPhysicalMaterial({ map: labelMap, roughnessMap: labelOrm, metalnessMap: labelOrm, roughness: 1, metalness: 1, clearcoat: 0.35, clearcoatRoughness: 0.3, envMapIntensity: 1.3 }), -1);
+const label = new THREE.Mesh(new THREE.CylinderGeometry(LBL_R, LBL_R, LBL_H, SEG, 1, true, -Math.PI, Math.PI * 2), labelMat);
+label.position.y = LBL_Y;
+spin.add(label);
+
+// studio HDRIs (Poly Haven, CC0): warm brown studio for traditions, neutral softboxes for technologies
+if (!noHdri) {
+  const pmremHdr = new THREE.PMREMGenerator(renderer);
+  const loadEnv = (url, mats) => new RGBELoader().load(url, (hdr) => {
+    const env = pmremHdr.fromEquirectangular(hdr).texture;
+    hdr.dispose();
+    for (const m of mats) { m.envMap = env; m.needsUpdate = true; }
+  });
+  loadEnv('assets/hdri/brown_photostudio_02_1k.hdr', [reflT, capT, labelMat, gelT]);
+  loadEnv('assets/hdri/studio_small_09_1k.hdr', [reflH, capH, gelH]);
+}
+
+// technology overlays, right of the seam only
+const wireMat = split(new THREE.LineBasicMaterial({ color: C('#8FB3FF'), transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }), 1);
+spin.add(new THREE.LineSegments(new THREE.EdgesGeometry(shellGeo, 20), wireMat));
+{
+  const capEdges = new THREE.LineSegments(new THREE.EdgesGeometry(capParts[0][0], 1), wireMat);
+  spin.add(capEdges);
+  for (let k = 0; k < 12; k++) {
+    const t = k * Math.PI / 6;
+    const pts = OUTER.map(([x, y]) => new THREE.Vector3(Math.sin(t) * x * 1.006, y, Math.cos(t) * x * 1.006));
+    spin.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), wireMat));
+  }
+}
+const dashMat = split(new THREE.LineDashedMaterial({ color: C('#BBD0FF'), dashSize: 0.05, gapSize: 0.035, transparent: true, opacity: 0.9, depthWrite: false }), 1);
+{
+  const arc = Math.PI * 0.85, n = 48, pts = [], r = LBL_R + 0.01;
+  for (let k = 0; k <= n; k++) { const t = -arc / 2 + arc * k / n; pts.push(new THREE.Vector3(Math.sin(t) * r, LBL_Y + LBL_H / 2, Math.cos(t) * r)); }
+  for (let k = n; k >= 0; k--) { const t = -arc / 2 + arc * k / n; pts.push(new THREE.Vector3(Math.sin(t) * r, LBL_Y - LBL_H / 2, Math.cos(t) * r)); }
+  const outline = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts), dashMat);
+  outline.computeLineDistances();
+  spin.add(outline);
+}
+const scan = new THREE.Group();
+const scanBandMat = split(new THREE.MeshBasicMaterial({ color: C('#7FA8FF'), transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }), 1);
+scan.add(new THREE.Mesh(new THREE.CylinderGeometry(0.768, 0.768, 0.06, SEG, 1, true), scanBandMat));
+const scanLineMat = split(new THREE.LineBasicMaterial({ color: C('#DCE7FF'), transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }), 1);
+{
+  const pts = [];
+  for (let k = 0; k < SEG; k++) { const t = k * (Math.PI * 2) / SEG; pts.push(new THREE.Vector3(Math.sin(t) * 0.775, 0, Math.cos(t) * 0.775)); }
+  scan.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts), scanLineMat));
+}
+base.add(scan); // the scan ring travels along the axis but does not spin
+
+/* ---------- floor far below the floating jar: soft shadow, warm caustic, cool rings ---------- */
+const floor = new THREE.Group();
+scene.add(floor);
+const floorPlane = (size, mat, y, pos = [0, 0], sx = 1) => {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(size, size), mat);
+  m.rotation.x = -Math.PI / 2; m.position.set(pos[0], y, pos[1]); m.scale.x = sx; floor.add(m); return mat;
+};
+const floorMat = (tex, blending, opacity) => new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, blending, opacity, toneMapped: false });
+const shadowMat = floorPlane(2.6, floorMat(radialTexture([[0, 'rgba(0,0,0,0.7)'], [0.4, 'rgba(0,0,0,0.3)'], [1, 'rgba(0,0,0,0)']]), THREE.NormalBlending, 0.7), 0.001, [0.15, 0], 1.5);
+floorPlane(2.8, split(floorMat(causticTexture(), THREE.AdditiveBlending, 0.9), -1), 0.002, [0.3, 0.6], 1.3);
+floorPlane(3.6, split(floorMat(ringsTexture(), THREE.AdditiveBlending, 0.7), 1), 0.003, [0.1, 0]);
+
+/* ---------- DOM ---------- */
+const voiceL = document.querySelector('.voice.l');
+const voiceR = document.querySelector('.voice.r');
+const hint = document.getElementById('hint');
+const fpsEl = document.getElementById('fps');
+if (debug) fpsEl.hidden = false;
+if (isTouch) hint.textContent = 'коснитесь слова';
+const svg = document.getElementById('leaders');
+const NS = 'http://www.w3.org/2000/svg';
+// anchors live in the non-spinning "base" frame, on the camera-facing side of the jar
+const ANCHORS = {
+  cap: new THREE.Vector3(0.62, 2.47, 0.15),
+  shoulder: new THREE.Vector3(0.68, 1.99, 0.15),
+  wall: new THREE.Vector3(0.74, 0.25, 0.12),
+  base: new THREE.Vector3(0.55, 0.01, 0.12),
+  label: new THREE.Vector3(-0.75, 1.05, 0.15),
+  volume: new THREE.Vector3(-0.3, 1.88, 0.35),
+};
+const specs = [...document.querySelectorAll('.spec')].map((el, i) => {
+  const line = document.createElementNS(NS, 'polyline');
+  const dot = document.createElementNS(NS, 'circle'); dot.setAttribute('r', '2.5');
+  svg.append(line, dot);
+  return { el, line, dot, i, side: el.classList.contains('l') ? 'l' : 'r', anchor: ANCHORS[el.dataset.anchor] };
+});
+const v = new THREE.Vector3();
+const toScreen = (p, frame) => { v.copy(p); if (frame) v.applyMatrix4(frame.matrixWorld); v.project(camera); return [(v.x * 0.5 + 0.5) * W, (-v.y * 0.5 + 0.5) * H]; };
+
+/* ---------- input: only the words switch the world; anywhere else = balance ---------- */
+let target = 0, mode = 0, interacted = false;
+let px = 0, py = 0, spx = 0, spy = 0;
+const setTarget = (t) => {
+  if (t === target) return;
+  target = t;
+  if (t !== 0 && !interacted) { interacted = true; hint.style.opacity = '0'; }
+  voiceL.classList.toggle('hot', t === -1);
+  voiceL.classList.toggle('cold', t === 1);
+  voiceR.classList.toggle('hot', t === 1);
+  voiceR.classList.toggle('cold', t === -1);
+};
+for (const el of document.querySelectorAll('.hit')) {
+  const m = Number(el.dataset.mode);
+  el.addEventListener('pointerenter', (e) => { if (e.pointerType !== 'touch' && !isTouch) setTarget(m); });
+  el.addEventListener('pointerleave', (e) => { if (e.pointerType !== 'touch' && !isTouch) setTarget(0); });
+  // phones: tap a word to open its world, tap it again or anywhere else to return to balance
+  el.addEventListener('click', (e) => { if (isTouch || e.pointerType === 'touch') { e.stopPropagation(); setTarget(target === m ? 0 : m); } });
+}
+hero.addEventListener('click', () => { if (isTouch) setTarget(0); });
+hero.addEventListener('pointermove', (e) => { px = (e.clientX / W) * 2 - 1; py = (e.clientY / H) * 2 - 1; });
+
+/* ---------- layout ---------- */
+let W = 1, H = 1, JAR_Y = 0, FLOOR_Y = -2;
+function resize() {
+  if (!hero.clientWidth || !hero.clientHeight) return; // hidden or collapsed pane
+  W = hero.clientWidth; H = hero.clientHeight;
+  renderer.setSize(W, H, false);
+  const aspect = W / H;
+  camera.aspect = aspect;
+  // tilted jar is ~3.1 units tall and ~2.4 wide: ~60% of the height on desktop, ~65% of the width on phones
+  const visH = Math.max(4.9, 3.7 / aspect) * (close ? 0.62 : 1);
+  const dist = visH / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+  camera.position.set(0, dist * 0.09, dist);
+  camera.lookAt(0, 0, 0);
+  camera.updateProjectionMatrix();
+  JAR_Y = 0.08 * visH;
+  FLOOR_Y = JAR_Y - 2.1;
+  floor.position.y = FLOOR_Y;
+  bgU.uAspect.value = aspect;
+  bgU.uHaloR.value = 0.42 * 4.9 / visH;
+  bgU.uPx.value = W * renderer.getPixelRatio();
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+}
+addEventListener('resize', resize);
+resize();
+
+/* ---------- loop ---------- */
+const clock = new THREE.Clock();
+let frames = 0, fpsT = 0, running = true, looping = false;
+// pause off-screen; never start a second loop on top of the first
+new IntersectionObserver(([e]) => {
+  running = e.isIntersecting;
+  if (running && !looping) { looping = true; clock.getDelta(); requestAnimationFrame(frame); }
+}).observe(hero);
+if (debug) window.__hero = { renderer, scene, seam: seamU, setMode: (m) => setTarget(m) };
+
+function frame() {
+  if (!running) { looping = false; return; }
+  // exponential easing is stable at any step: transitions take real time even at low fps
+  const dt = Math.min(clock.getDelta(), 0.5);
+  const t = clock.elapsedTime;
+  mode += (target - mode) * (1 - Math.exp(-dt * 3.4));
+  const a = Math.max(0, -mode), b = Math.max(0, mode), n = 1 - a - b;
+  // easing only approaches ±1, so overshoot slightly and clamp: the seam really reaches the edge
+  const full = THREE.MathUtils.clamp(mode * 1.04, -1, 1);
+  bgU.uMode.value = full;
+  seamU.value = 0.5 - 0.5 * full;
+
+  scan.position.y = 0.3 + (Math.sin(t * 1.1) * 0.5 + 0.5) * 1.5;
+
+  warmKey.intensity = 2.6 * a + 1.3 * n;
+  warmRim.intensity = 3.2 * a + 1.2 * n;
+  coolKey.intensity = 2.2 * b + 1.1 * n;
+  coolRim.intensity = 3.0 * b + 1.2 * n;
+
+  // floating: slow bob and drift, tilt breathes a little, pointer adds parallax
+  spx += (px - spx) * (1 - Math.exp(-dt * 2.5));
+  spy += (py - spy) * (1 - Math.exp(-dt * 2.5));
+  const k = reduceMotion || upright ? 0 : 1;
+  floatG.position.set(Math.sin(t * 0.43) * 0.06 * k + spx * 0.08, JAR_Y + Math.sin(t * 0.8) * 0.08 * k, 0);
+  floatG.rotation.set(Math.sin(t * 0.6) * 0.06 * k - spy * 0.06, Math.sin(t * 0.37) * 0.08 * k, TILT + Math.sin(t * 0.5) * 0.035 * k + spx * 0.05);
+  spin.rotation.y = Math.sin(t * 0.33) * 0.4 * k + spx * 0.3;
+
+  const lift = floatG.position.y - JAR_Y;
+  shadowMat.opacity = 0.7 - lift * 1.5;
+
+  v.copy(floatG.position).project(camera);
+  bgU.uHalo.value.set(v.x * 0.5 + 0.5, v.y * 0.5 + 0.5);
+
+  renderer.render(scene, camera);
+  placeSpecs(b);
+
+  if (debug) {
+    frames++; fpsT += dt;
+    if (fpsT > 0.5) { fpsEl.textContent = `${Math.round(frames / fpsT)} fps · dpr ${renderer.getPixelRatio()}`; frames = 0; fpsT = 0; }
+  }
+  requestAnimationFrame(frame);
+}
+
+function placeSpecs(b) {
+  const narrow = W < 760;
+  // jar axis on screen and its outward normal: labels leave the jar perpendicular to the axis
+  const [bx, by] = toScreen(new THREE.Vector3(0, 0, 0), base);
+  const [tx, ty] = toScreen(new THREE.Vector3(0, JAR_LEN, 0), base);
+  let dx = tx - bx, dy = ty - by; const len = Math.hypot(dx, dy) || 1; dx /= len; dy /= len;
+  const nx = -dy, ny = dx; // right-hand normal on screen
+  const reach = narrow ? 0 : Math.max(46, W * 0.035);
+  const jarBottom = Math.max(by, ty) + 40;
+  let cell = 0;
+  for (const s of specs) {
+    const o = smooth(0.55 + s.i * 0.05, 0.85 + s.i * 0.03, b);
+    if (getComputedStyle(s.el).display === 'none') { s.line.style.opacity = 0; s.dot.style.opacity = 0; continue; }
+    const [ax, ay] = toScreen(s.anchor, base);
+    if (!Number.isFinite(ax) || !Number.isFinite(ay)) continue;
+    const w = s.el.offsetWidth, h = s.el.offsetHeight;
+    if (narrow) {
+      // phones: no leaders, a 2x2 grid under the jar
+      const x = cell % 2 === 0 ? W * 0.13 : W * 0.57;
+      const y = jarBottom + 30 + Math.floor(cell / 2) * 46;
+      cell++;
+      s.el.style.textAlign = 'left';
+      s.el.style.opacity = o;
+      s.el.style.transform = `translate(${x}px, ${y}px)`;
+      s.line.style.opacity = 0; s.dot.style.opacity = 0;
+      continue;
+    }
+    s.el.style.textAlign = '';
+    const dir = s.side === 'r' ? 1 : -1;
+    const ex = ax + nx * reach * dir, ey = ay + ny * reach * dir; // elbow
+    const hx = ex + 26 * dir;                                     // short horizontal run
+    const x = dir > 0 ? hx + 8 : hx - 8 - w;
+    s.el.style.opacity = o;
+    s.el.style.transform = `translate(${x}px, ${ey - h / 2}px)`;
+    s.line.setAttribute('points', `${ax},${ay} ${ex},${ey} ${hx},${ey}`);
+    s.line.style.opacity = o * 0.7;
+    s.dot.setAttribute('cx', ax); s.dot.setAttribute('cy', ay);
+    s.dot.style.opacity = o;
+  }
+}
+
+/* ---------- canvas textures ---------- */
+function noiseTexture(size, blur) {
+  const c = document.createElement('canvas'); c.width = c.height = size;
+  const g = c.getContext('2d');
+  const img = g.createImageData(size, size);
+  for (let i = 0; i < img.data.length; i += 4) { const k = 128 + (Math.random() - 0.5) * 255; img.data[i] = img.data[i + 1] = img.data[i + 2] = k; img.data[i + 3] = 255; }
+  g.putImageData(img, 0, 0);
+  if (blur) { g.filter = `blur(${blur}px)`; g.drawImage(c, 0, 0); g.filter = 'none'; }
+  return new THREE.CanvasTexture(c);
+}
+function radialTexture(stops, size = 256) {
+  const c = document.createElement('canvas'); c.width = c.height = size;
+  const g = c.getContext('2d');
+  const grd = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  for (const [o, col] of stops) grd.addColorStop(o, col);
+  g.fillStyle = grd; g.fillRect(0, 0, size, size);
+  return new THREE.CanvasTexture(c);
+}
+function causticTexture() {
+  const S = 512, c = document.createElement('canvas'); c.width = c.height = S;
+  const g = c.getContext('2d');
+  const grd = g.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+  grd.addColorStop(0, 'rgba(255,170,80,0.55)'); grd.addColorStop(0.4, 'rgba(200,110,30,0.22)'); grd.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = grd; g.fillRect(0, 0, S, S);
+  g.filter = 'blur(5px)';
+  g.strokeStyle = 'rgba(255,200,120,0.55)';
+  for (let i = 0; i < 9; i++) {
+    g.lineWidth = 2 + (i % 3) * 2;
+    g.beginPath(); g.ellipse(S / 2, S / 2, 40 + i * 18, 22 + i * 10, (i * 0.37) % Math.PI, 0.3 + i * 0.2, 2.2 + i * 0.25); g.stroke();
+  }
+  g.filter = 'none';
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; return tex;
+}
+function ringsTexture() {
+  const S = 1024, c = document.createElement('canvas'); c.width = c.height = S;
+  const g = c.getContext('2d'); const m = S / 2;
+  g.strokeStyle = 'rgba(143,176,255,0.9)';
+  for (let r = 260; r <= 470; r += 52) { g.lineWidth = r === 260 ? 2 : 1; g.globalAlpha = 1 - (r - 260) / 300; g.beginPath(); g.arc(m, m, r, 0, Math.PI * 2); g.stroke(); }
+  g.globalAlpha = 0.8;
+  for (let k = 0; k < 72; k++) {
+    const a = k * Math.PI / 36, r0 = 470, r1 = k % 6 === 0 ? 440 : 456;
+    g.lineWidth = 1; g.beginPath(); g.moveTo(m + Math.cos(a) * r0, m + Math.sin(a) * r0); g.lineTo(m + Math.cos(a) * r1, m + Math.sin(a) * r1); g.stroke();
+  }
+  g.globalAlpha = 0.5; g.beginPath(); g.moveTo(m - 500, m); g.lineTo(m + 500, m); g.moveTo(m, m - 500); g.lineTo(m, m + 500); g.stroke();
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; return tex;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,278 @@
+/* JES Life home: hero (3D) + MDE-style scenes. Sizes are taken from Figma 151:226 at 1440 px */
+:root {
+  --cream: #F0E8DF;
+  --gold-a: #DCB994;
+  --gold-b: #FFEBD6;
+  --ice: #C9D5EE;
+  --spec: #A9BDE6;
+  --night: #0C0804;
+  --parchment: #F2EFEB;
+  --sand: #E7E1D7;
+  --plum: #592841;
+  --ink: #1B1B1B;
+  --graphite: #2A2C2D;
+  --brown: #73553F;
+  --gold-dark: linear-gradient(90deg, #8A653F, #C29A6E 50%, #9C774F);
+  --gold-light: linear-gradient(90deg, #DCB994, #FFEBD6 50%, #DCB994);
+  --gutter: 28px;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  --body-lh: 1.2; /* body copy line height: 120% */
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: var(--night); }
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+body { font-family: Jost, system-ui, sans-serif; color: var(--cream); background: var(--night); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+/* scrollbar in the site palette: a thin gold pill (the btn-gold gradient) on the ink track, no arrow buttons.
+   Firefox has no ::-webkit-scrollbar, so it gets the standard thin bar in the same colours */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: var(--ink); }
+::-webkit-scrollbar-thumb { border: 3px solid transparent; border-radius: 10px; background: linear-gradient(180deg, #B99067, #8A653F) padding-box; }
+::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, var(--gold-a), #A9835C) padding-box; }
+::-webkit-scrollbar-button { display: none; }
+@supports not selector(::-webkit-scrollbar) { html { scrollbar-width: thin; scrollbar-color: #A9835C var(--ink); } }
+img { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+
+/* ---------- type ---------- */
+.label { font-family: Unbounded, sans-serif; font-weight: 300; font-size: 12px; line-height: 16px; letter-spacing: -.02em; text-transform: uppercase; }
+.giant { font-family: Oranienbaum, serif; font-weight: 400; text-transform: uppercase; letter-spacing: -.02em; text-align: center; }
+.grad-dark { background: var(--gold-dark); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.grad-light { background: var(--gold-light); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+/* masked line reveal (MDE .title-animate): each line rises out of its own mask, 0.2 s apart */
+/* room above the caps inside the mask, or the dots of Ё get clipped by the tight line height */
+.title-anim .tl { display: block; clip-path: inset(0 -100vw); padding: .24em 0 .04em; margin: -.24em 0 -.04em; } /* masks top and bottom only: nothing is cut at the sides */
+.title-anim .tc { display: block; transform: translate3d(0, 105%, 0); transition: transform 1.2s var(--ease); transition-delay: calc(var(--line, 0) * .2s); }
+.title-anim.show .tc { transform: none; }
+/* gradient text must live on the moving span, or the mask clips the paint */
+/* gradient paint only covers the box: extend it above the caps so the dots of Ё get colour too */
+.title-anim .tc.grad-dark, .title-anim .tc.grad-light { padding: .24em .02em 0; margin-top: -.24em; }
+
+.reveal-up { opacity: 0; transform: translateY(20px); transition: opacity 1.2s var(--ease), transform 1.2s var(--ease); transition-delay: var(--d, 0s); }
+.reveal-up.show { opacity: 1; transform: none; }
+
+/* ---------- buttons ---------- */
+.btn { border: .8px solid var(--gold-a); border-radius: 100px; padding: 14px 28px; font-family: Unbounded, sans-serif; font-weight: 300; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--cream); white-space: nowrap; transition: background .4s, color .4s; }
+.btn:hover { background: var(--gold-a); color: var(--ink); }
+.btn-gold { display: inline-flex; align-items: center; justify-content: center; height: 50px; padding: 0 37px; border-radius: 100px; background: linear-gradient(90deg, #8A653F, #B99067); font-family: Unbounded, sans-serif; font-weight: 400; font-size: 13px; letter-spacing: -.03em; text-transform: uppercase; color: #FFFFFF; white-space: nowrap; transition: filter .4s, transform .4s var(--ease); }
+.btn-gold:hover { filter: brightness(1.12); transform: translateY(-2px); }
+
+/* ---------- header: fixed, always visible and transparent; text turns dark over light scenes ---------- */
+.site-header { position: fixed; top: 0; left: 0; right: 0; height: 76px; padding: 0 var(--gutter); display: flex; align-items: center; justify-content: space-between; z-index: 50; background: transparent; }
+.site-header nav a, .site-header .logo, .site-header .btn { transition: color .5s, border-color .5s, background .4s; }
+.site-header .btn { color: var(--gold-a); }
+.site-header .btn:hover { background: var(--gold-a); color: var(--ink); }
+.site-header.on-light nav a { color: #997550; }
+.site-header.on-light .logo { color: #8A653F; }
+.site-header.on-light .btn { color: #997550; border-color: #997550; }
+.site-header.on-light .btn:hover { background: #997550; color: var(--parchment); }
+.site-header nav { display: flex; gap: 32px; }
+/* one menu style for the header and the footer, set like the text inside «Стать партнёром» */
+.site-header nav a, .footer__title { font-family: Unbounded, sans-serif; font-weight: 300; font-size: 11px; line-height: 18px; letter-spacing: .06em; text-transform: uppercase; }
+.site-header nav a { color: var(--gold-a); }
+/* menu items and text links dim to 50 % on hover; buttons keep their own fill */
+.site-header nav a, a.footer__title, .footer__legal a { transition: opacity .3s, color .5s; }
+.site-header nav a:hover, a.footer__title:hover, .footer__legal a:hover { opacity: .5; }
+.logo { position: absolute; left: 50%; transform: translateX(-50%); font-family: Oranienbaum, serif; font-size: 30px; letter-spacing: .01em; white-space: nowrap; color: #E7CFAF; }
+
+/* ---------- hero (3D) ---------- */
+#hero { position: relative; width: 100%; height: 100svh; min-height: 560px; overflow: hidden; user-select: none; touch-action: manipulation; background: var(--night); }
+#gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hero-dim { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; z-index: 7; }
+.voice { position: absolute; bottom: 5.5vh; width: 50%; text-align: center; z-index: 4; pointer-events: none; will-change: transform, opacity; }
+.voice.l { left: 0; }
+.voice.r { right: 0; }
+/* hovered word grows to 108%, the other shrinks to 90% and fades to 70%, from the outer bottom corner */
+.voice .hit { display: inline-block; pointer-events: auto; cursor: pointer; padding: 0 12px; transition: transform .6s var(--ease), opacity .6s; }
+.voice.l .hit { transform-origin: 0% 100%; }
+.voice.r .hit { transform-origin: 100% 100%; }
+.voice.hot .hit { transform: scale(1.08); }
+.voice.cold .hit { transform: scale(0.9); opacity: .5; }
+.big { font-family: Oranienbaum, serif; text-transform: uppercase; font-size: clamp(40px, 7.8vw, 112px); line-height: .95; letter-spacing: -.02em; background: var(--gold-light); -webkit-background-clip: text; background-clip: text; color: transparent; white-space: nowrap; }
+.script { font-family: 'Great Vibes', cursive; font-size: clamp(22px, 3vw, 44px); line-height: 1.1; margin-top: -.1em; }
+.voice.l .script { color: var(--cream); }
+.voice.r .script { color: #E6ECF8; }
+#specs { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+#leaders { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; overflow: visible; }
+#leaders polyline { stroke: #8FB0FF; stroke-width: 1; fill: none; }
+#leaders circle { fill: #DCE7FF; }
+.spec { position: absolute; left: 0; top: 0; opacity: 0; white-space: nowrap; will-change: transform, opacity; }
+.spec b { display: block; font-family: Unbounded, sans-serif; font-weight: 400; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #FFFFFF; margin-bottom: 4px; }
+.spec span { font-size: 15px; color: var(--spec); font-weight: 300; }
+.spec.l { text-align: right; }
+#hint { position: absolute; left: 50%; bottom: 1.6vh; transform: translateX(-50%); z-index: 5; font-family: Unbounded, sans-serif; font-weight: 300; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: rgba(240, 232, 223, .55); white-space: nowrap; transition: opacity .8s; pointer-events: none; }
+#fps { position: absolute; right: 12px; bottom: 12px; z-index: 9; font: 12px/1 ui-monospace, monospace; color: #9f9; background: rgba(0, 0, 0, .5); padding: 6px 8px; border-radius: 4px; }
+#nogl { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; text-align: center; padding: 24px; color: var(--cream); }
+
+/* ---------- scenes ---------- */
+.sec { position: relative; z-index: 2; overflow: hidden; }
+
+/* 02 О нас: slides over the pinned hero */
+.about { background: var(--parchment); min-height: 100svh; display: flex; align-items: center; justify-content: center; padding: 120px 200px; color: var(--graphite); }
+.about__center { width: 100%; max-width: 1040px; text-align: center; container-type: inline-size; }
+.about .label { color: #997F63; }
+.about .rule { display: block; width: 132px; height: 1px; margin: 28px auto 29px; background: #BB9771; transform: scaleX(0); transition: transform 1.4s var(--ease) .2s; }
+.about.show .rule { transform: none; }
+.about__title { font-size: clamp(28px, 7.3cqw, 76px); line-height: .92; } /* 76 px at a 1040 px column: sized by the column, so the lines always fit */
+.about__title .tc { white-space: nowrap; }
+.pill { display: inline-block; vertical-align: middle; width: 1.63em; height: .76em; border-radius: 100px; object-fit: cover; margin: -.1em .18em 0; clip-path: inset(0 32% round 100px); transition: clip-path 1.4s var(--ease); transition-delay: calc(var(--line, 0) * .2s + .5s); }
+.about__title.show .pill { clip-path: inset(0 0 round 100px); }
+.pill[data-zoom] { cursor: zoom-in; }
+.pill[data-zoom]:hover { filter: brightness(1.06); }
+/* hovering a pill opens the photo as a large card above it */
+.pill-zoom { position: fixed; left: 0; top: 0; width: 0; height: 0; z-index: 70; overflow: hidden; border-radius: 100px; pointer-events: none; opacity: 0; box-shadow: 0 30px 70px rgba(40, 25, 10, .35); background: #2A2C2D; }
+.pill-zoom img { width: 100%; height: 100%; object-fit: cover; }
+.about__text { max-width: 720px; margin: 28px auto 0; font-weight: 300; font-size: 18px; line-height: var(--body-lh); }
+.about__text p + p { margin-top: 18px; color: var(--brown); }
+.pillar { position: absolute; top: 50%; width: 120px; height: 560px; margin-top: -280px; opacity: .7; }
+.pillar.l { left: 40px; }
+.pillar.r { right: 40px; }
+.pillar svg { position: absolute; left: 13px; top: 112px; width: 94px; height: 340px; overflow: visible; }
+.pillar path { stroke-dasharray: var(--len, 900); stroke-dashoffset: var(--len, 900); transition: stroke-dashoffset 2.6s var(--ease); }
+.about.show .pillar path { stroke-dashoffset: 0; }
+.pillar circle { opacity: 0; transition: opacity 1s 1.6s; }
+.about.show .pillar circle { opacity: 1; }
+
+/* every scene after the hero opens from an arch (MDE) that turns into the full frame;
+   the wrapper keeps the previous scene's colour around the arch while it opens.
+   03 Бизнес с нами: the product rises between the letters */
+.arch-wrap { position: relative; z-index: 2; background: var(--wrap, var(--parchment)); margin-top: -1px; padding-top: 1px; } /* previous scene colour around the arch; covers the sub-pixel seam */
+.business { background: var(--plum); padding: 96px var(--gutter) 104px; text-align: center; }
+.business .label { color: #CFA5BF; }
+.business__head { position: relative; margin-top: 40px; height: clamp(160px, 22.9vw, 330px); }
+.business__title { position: absolute; left: 0; right: 0; top: 12%; font-size: clamp(64px, 13.6vw, 196px); line-height: .92; }
+.business__chess { position: absolute; left: 50%; bottom: 0; width: clamp(110px, 18.6vw, 268px); translate: -50% 0; filter: drop-shadow(0 24px 30px rgba(0, 0, 0, .35)); will-change: transform; }
+.business__intro { max-width: 760px; margin: 40px auto 0; font-weight: 300; font-size: 18px; line-height: var(--body-lh); color: #FFE3F1; }
+.steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 40px; }
+.frame-card { position: relative; padding: 34px 30px 40px; text-align: center; }
+.frame-card::before { content: ''; position: absolute; inset: 8px; border: .8px solid var(--frame, #B98AA4); pointer-events: none; }
+.frame-card .corner { position: absolute; width: 14px; height: 14px; border-radius: 50%; border: .8px solid var(--frame, #B98AA4); background: var(--frame-bg, var(--plum)); }
+.frame-card .corner:nth-of-type(1) { left: 1px; top: 1px; }
+.frame-card .corner:nth-of-type(2) { right: 1px; top: 1px; }
+.frame-card .corner:nth-of-type(3) { left: 1px; bottom: 1px; }
+.frame-card .corner:nth-of-type(4) { right: 1px; bottom: 1px; }
+.steps .frame-card { min-height: 300px; transition: transform .6s var(--ease); }
+.steps .frame-card:hover { transform: translateY(-6px); }
+.step__num { font-family: Oranienbaum, serif; font-size: 44px; line-height: 44px; }
+.step__title { margin-top: 20px; font-family: Unbounded, sans-serif; font-weight: 300; font-size: 14px; line-height: 19px; letter-spacing: -.02em; text-transform: uppercase; color: #F0E8DF; min-height: 38px; }
+.step__text { margin-top: 24px; font-weight: 300; font-size: 15px; line-height: var(--body-lh); color: #E8C9DA; }
+.business .btn-gold { margin-top: 40px; }
+
+/* 04 О наших продуктах */
+.products { background: var(--sand); padding: 80px var(--gutter) 96px; color: var(--graphite); }
+.products__head { position: relative; height: clamp(170px, 26.4vw, 380px); }
+.products__title { font-size: clamp(56px, 11.8vw, 170px); line-height: .92; }
+.products__title .tl + .tl { margin-top: .26em; }
+.products__jar { position: absolute; left: 50%; top: 20%; width: clamp(96px, 15.6vw, 224px); translate: -50% 0; filter: drop-shadow(0 24px 30px rgba(60, 40, 20, .28)); will-change: transform; }
+.products__cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; max-width: 1200px; margin: 44px auto 0; font-weight: 300; font-size: 17px; line-height: var(--body-lh); }
+.products__cols p:nth-child(2) { color: var(--brown); }
+.carousel { margin-top: 44px; overflow: hidden; }
+.carousel__track { display: flex; gap: 20px; transition: transform .9s var(--ease); }
+.carousel .frame-card { flex: 0 0 calc((100% - 60px) / 4); min-height: 380px; padding: 46px 30px 40px; background: #FBF8F3; --frame: #D9CBB8; --frame-bg: #FBF8F3; transition: box-shadow .6s, transform .6s var(--ease); }
+.carousel .frame-card:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(115, 85, 63, .14); }
+.medal { width: 120px; height: 120px; margin: 0 auto; border-radius: 50%; border: 1px solid rgba(0, 0, 0, .1); overflow: hidden; transition: transform 1.2s var(--ease); }
+.frame-card:hover .medal { transform: rotate(-12deg) scale(1.04); }
+.card__title { margin-top: 30px; font-family: Unbounded, sans-serif; font-weight: 300; font-size: 14px; line-height: 19px; letter-spacing: -.02em; text-transform: uppercase; color: var(--graphite); }
+.card__text { margin-top: 18px; font-weight: 300; font-size: 14px; line-height: var(--body-lh); color: var(--brown); }
+
+/* slider nav: 46 px circles, counter, autoplay ring on "next" (MDE hero slider) */
+.slider-nav { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 44px; color: var(--nav, #AF9376); }
+.slider-nav[hidden] { display: none; }
+.slider-nav button { position: relative; width: 46px; height: 46px; border-radius: 50%; border: .8px solid currentColor; background: none; color: inherit; cursor: pointer; display: grid; place-items: center; transition: background .3s; }
+.slider-nav button:hover { background: rgba(220, 185, 148, .12); }
+.slider-nav button svg.arrow { width: 18px; height: 18px; }
+.slider-nav .ring { position: absolute; inset: -1px; width: 48px; height: 48px; transform: rotate(-90deg); pointer-events: none; }
+.slider-nav .ring circle { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-dasharray: 144.5; stroke-dashoffset: 144.5; }
+.slider-nav.playing .ring circle { animation: ring var(--autoplay, 5s) linear forwards; }
+@keyframes ring { to { stroke-dashoffset: 0; } }
+.slider-nav .count { font-size: 16px; line-height: 20px; min-width: 36px; text-align: center; }
+
+/* 05 Пауза: the stage opens from an arch, the product turns under the cursor */
+.pause { background: var(--ink); padding: 72px var(--gutter) 72px; }
+@media (min-width: 1081px) { .pause { min-height: 100svh; display: flex; flex-direction: column; justify-content: center; } } /* pinned: fills the screen, no wrapper colour below */
+.pause__stage { position: relative; height: clamp(260px, 41.25vw, 594px); overflow: hidden; outline: 1px solid rgba(0, 0, 0, .1); perspective: 1400px; cursor: none; }
+.pause__slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1.2s var(--ease); }
+.pause__slide.on { opacity: 1; }
+.pause__slide img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.06); transition: transform 6s linear; will-change: transform; }
+.pause__slide.on img { transform: scale(1); }
+.pause__turn { position: absolute; inset: 0; transform-style: preserve-3d; will-change: transform; }
+/* custom cursor: the outer box is moved by GSAP, the inner circle scales in and out */
+.pause__cursor { position: fixed; left: 0; top: 0; width: 92px; height: 92px; margin: -46px 0 0 -46px; pointer-events: none; z-index: 60; }
+.pause__cursor span { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%; border: .8px solid var(--gold-a); font-family: Unbounded, sans-serif; font-weight: 300; font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--gold-a); opacity: 0; transform: scale(.6); transition: opacity .3s, transform .4s var(--ease); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+.pause__cursor.on span { opacity: 1; transform: scale(1); }
+.pause__zoom { position: absolute; inset: 0; will-change: transform; }
+.pause .slider-nav { --nav: #DCB994; margin-top: 32px; }
+
+/* footer after MDE: a double frame with three columns, then the mark across the full width, then the legal row.
+   Gold #A48F79 text, 14 px caps links */
+/* margin-top -1px: after the pause pin the scene ends a fraction of a pixel short, and the sand wrap behind it showed as a light line */
+.site-footer { position: relative; z-index: 2; margin-top: -1px; background: var(--ink); padding: 74px var(--gutter) 34px; overflow: hidden; color: #A48F79; }
+.footer__frame { position: relative; padding: 52px 40px 48px; border: 1.5px solid #0B0B0B; box-shadow: inset 0 0 0 5px var(--ink), inset 0 0 0 6.5px #0B0B0B; }
+.footer__cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 40px; text-align: center; }
+.footer__title { color: #A48F79; }
+/* the side columns hold only the menu items: О нас and Бизнес on the left, Продукты and Контакты on the right.
+   The reveal sits on an inner span, so it does not fight the hover opacity of the link */
+.footer__col { display: flex; flex-direction: column; align-items: center; gap: 22px; }
+.footer__title > .reveal-up { display: inline-block; }
+.footer__form { display: flex; align-items: center; gap: 16px; max-width: 290px; margin: 60px auto 0; border-bottom: .8px solid rgba(203, 169, 133, .44); }
+.footer__form input { flex: 1; min-width: 0; height: 32px; background: none; border: 0; outline: 0; font: inherit; font-size: 14px; letter-spacing: -.03em; text-transform: uppercase; color: #CBA985; }
+.footer__form input::placeholder { color: #CBA985; opacity: .8; }
+.footer__form button { display: inline-flex; align-items: center; gap: 5px; background: none; border: 0; cursor: pointer; font-family: Unbounded, sans-serif; font-weight: 400; font-size: 11px; text-transform: uppercase; color: #CBA985; transition: color .3s; }
+.footer__form button svg { width: 12px; height: 12px; transition: transform .4s var(--ease); }
+.footer__form button:hover { color: var(--gold-b); }
+.footer__form button:hover svg { transform: translate(2px, -2px); }
+.footer__note { margin-top: 14px; font-size: 13px; line-height: var(--body-lh); color: #CBA985; }
+.footer__mark { margin-top: 32px; text-align: center; }
+.footer__mark .giant { font-size: 200px; line-height: .86; white-space: nowrap; } /* exact size is fitted to the width by site.js */
+.footer__bottom { display: flex; align-items: flex-start; justify-content: space-between; gap: 32px; margin-top: 18px; }
+.footer__copy { font-size: 14px; line-height: 21px; letter-spacing: -.03em; text-transform: uppercase; color: #A8917A; }
+.footer__legal { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px 44px; }
+.footer__legal a { font-size: 14px; line-height: 21px; letter-spacing: -.03em; text-transform: uppercase; color: #A8917A; text-decoration: underline; text-decoration-thickness: .8px; text-underline-offset: 3px; }
+/* items rise one after another, like MDE footer lists */
+.footer__form { --d: .4s; }
+
+
+/* ---------- phones and narrow screens ---------- */
+@media (max-width: 1080px) {
+  .about { padding: 110px 24px 90px; }
+  .pillar { display: none; }
+  .steps { grid-template-columns: repeat(2, 1fr); }
+  .products__cols { grid-template-columns: 1fr; gap: 18px; }
+  .carousel .frame-card { flex-basis: calc((100% - 20px) / 2); }
+  .footer__cols { grid-template-columns: 1fr; gap: 44px; }
+  .footer__form { margin-top: 26px; }
+  .footer__bottom { flex-direction: column; align-items: center; text-align: center; }
+  .footer__legal { justify-content: center; gap: 10px 24px; }
+  .pause__stage { cursor: auto; }
+}
+@media (max-width: 760px) {
+  :root { --gutter: 16px; }
+  .site-header { height: 64px; }
+  .site-header nav { display: none; }
+  .logo { position: static; transform: none; font-size: 24px; }
+  .btn { padding: 10px 16px; font-size: 9px; }
+  .voice { bottom: 9vh; }
+  .big { font-size: 7.4vw; }
+  .script { font-size: 4.6vw; }
+  .spec span { font-size: 12px; }
+  .spec b { font-size: 9px; }
+  .spec.minor { display: none; }
+  .about__title { font-size: 7.6vw; }
+  .about__title .tc { white-space: normal; }
+  .pill { width: 1.4em; }
+  .business__title { font-size: 12.2vw; }
+  .business__head { height: 44vw; }
+  .business__chess { width: 30vw; }
+  .products__title { font-size: 15vw; }
+  .products__head { height: 46vw; }
+  .products__jar { width: 24vw; }
+  .about__text { font-size: 16px; }
+  .business__intro { font-size: 16px; }
+  .steps { grid-template-columns: 1fr; }
+  .carousel .frame-card { flex-basis: 100%; }
+  .footer__frame { padding: 40px 18px 36px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .title-anim .tc, .reveal-up, .pill, .pillar path, .about .rule { transition: none !important; transform: none !important; opacity: 1 !important; clip-path: none !important; stroke-dashoffset: 0 !important; }
+}
